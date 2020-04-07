@@ -2,7 +2,7 @@ import 'package:dice_poker/data.dart';
 import 'package:flutter/material.dart';
 
 class Dice extends StatelessWidget {
-  String data = 'A';
+  final String data;
 
   Dice(this.data, {Key key}) : super(key: key);
 
