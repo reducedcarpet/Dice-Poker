@@ -1,6 +1,3 @@
-name: Dart CI
-
-The name of your workflow.
 name:  Test build deploy
 # Trigger the workflow on push or pull request
 on: [push,pull_request]
