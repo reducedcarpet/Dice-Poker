@@ -24,9 +24,6 @@ jobs:
           java-version: '12.x'
       #enable linux,macos,windows   and  web
       - run: flutter  config --enable-web
-      - run: flutter  config --enable-linux-desktop
-      - run: flutter  config --enable-macos-desktop
-      - run: flutter  config --enable-windows-desktop
       - run: flutter pub get
       # build Flutter web version
       - run: flutter build web
@@ -34,6 +31,7 @@ jobs:
       # https://github.com/JamesIves/github-pages-deploy-action
       - uses: JamesIves/github-pages-deploy-action@releases/v3
         with:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_ACCESS_TOKEN }}
-          BRANCH: master
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          BASE_BRANCH: master
+          BRANCH: gh-pages
           FOLDER: build/web
