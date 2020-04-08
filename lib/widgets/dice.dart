@@ -3,8 +3,9 @@ import 'package:flutter/material.dart';
 
 class Dice extends StatelessWidget {
   final String data;
+  final bool kept;
 
-  Dice(this.data, {Key key}) : super(key: key);
+  Dice(this.data, this.kept, {Key key}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
@@ -14,12 +15,14 @@ class Dice extends StatelessWidget {
     else if (data == 'J')
       color = Colors.green[400];
     else if (data == 'Q') color = Colors.blue[700];
+
     return Center(
       child: Container(
         width: 44,
         margin: EdgeInsets.all(6),
         padding: EdgeInsets.symmetric(vertical: 15),
-        decoration: BoxDecoration(color: Colors.white, boxShadow: customShadow, borderRadius: BorderRadius.circular(10)),
+        decoration:
+            BoxDecoration(color: kept ? Colors.deepOrange.withOpacity(0.6) : Colors.white, boxShadow: customShadow, borderRadius: BorderRadius.circular(10)),
         child: Center(
           child: Text(
             data,

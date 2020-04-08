@@ -11,3 +11,9 @@ abstract class GameLogicEvent {
 }
 
 class RollTurn extends GameLogicEvent {}
+
+class RollTurnWithKeepers extends GameLogicEvent {
+  RollTurnWithKeepers(List<bool> keepers) {
+    keep = keepers;
+  }
+}

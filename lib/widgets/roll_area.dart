@@ -14,12 +14,11 @@ class RollArea extends StatefulWidget {
 }
 
 class _RollAreaState extends State<RollArea> {
-  GameLogicBloc _gameLogicBloc;
+  List<bool> keepers = [false, false, false, false, false];
 
   @override
   void initState() {
     super.initState();
-    _gameLogicBloc = BlocProvider.of<GameLogicBloc>(context);
   }
 
   @override
@@ -59,26 +58,84 @@ class _RollAreaState extends State<RollArea> {
                             )
                           : Row(
                               children: <Widget>[
-                                Dice(state.currentRoll.roll[0]),
-                                Dice(state.currentRoll.roll[1]),
-                                Dice(state.currentRoll.roll[2]),
-                                Dice(state.currentRoll.roll[3]),
-                                Dice(state.currentRoll.roll[4]),
-                                MaterialButton(
-                                  padding: EdgeInsets.all(0),
-                                  onPressed: () {
-                                    //setState(() {
-                                    print('current roll i: ' + state.currentRollNumber.toString());
-                                    glBloc.add(RollTurn());
-                                    print('current roll ii: ' + state.currentRollNumber.toString());
-                                    // });
-                                  },
-                                  child: Container(
-                                    child: Text('Roll'),
+                                SizedBox(
+                                  width: 60,
+                                  child: FlatButton(
+                                      padding: EdgeInsets.all(0),
+                                      onPressed: () {
+                                        setState(() {
+                                          keepers[0] = !keepers[0];
+                                        });
+                                      },
+                                      child: Dice(state.currentRoll.roll[0], keepers[0])),
+                                ),
+                                SizedBox(
+                                  width: 60,
+                                  child: FlatButton(
+                                    padding: EdgeInsets.all(0),
+                                    onPressed: () {
+                                      setState(() {
+                                        keepers[1] = !keepers[1];
+                                      });
+                                    },
+                                    child: Dice(state.currentRoll.roll[1], keepers[1]),
+                                  ),
+                                ),
+                                SizedBox(
+                                  width: 60,
+                                  child: FlatButton(
+                                    padding: EdgeInsets.all(0),
+                                    onPressed: () {
+                                      setState(() {
+                                        keepers[2] = !keepers[2];
+                                      });
+                                    },
+                                    child: Dice(state.currentRoll.roll[2], keepers[2]),
+                                  ),
+                                ),
+                                SizedBox(
+                                  width: 60,
+                                  child: FlatButton(
+                                    padding: EdgeInsets.all(0),
+                                    onPressed: () {
+                                      setState(() {
+                                        keepers[3] = !keepers[3];
+                                      });
+                                    },
+                                    child: Dice(state.currentRoll.roll[3], keepers[3]),
+                                  ),
+                                ),
+                                SizedBox(
+                                  width: 60,
+                                  child: FlatButton(
+                                    padding: EdgeInsets.all(0),
+                                    onPressed: () {
+                                      setState(() {
+                                        keepers[4] = !keepers[4];
+                                      });
+                                    },
+                                    child: Dice(state.currentRoll.roll[4], keepers[4]),
+                                  ),
+                                ),
+                                SizedBox(
+                                  width: 60,
+                                  child: FlatButton(
+                                    padding: EdgeInsets.all(0),
+                                    onPressed: () {
+                                      //setState(() {
+                                      print('current roll i: ' + state.currentRollNumber.toString());
+                                      glBloc.add(RollTurnWithKeepers(keepers));
+                                      print('current roll ii: ' + state.currentRollNumber.toString());
+                                      // });
+                                    },
+                                    child: Container(
+                                      child: Text('Roll'),
+                                    ),
                                   ),
                                 ),
                               ],
-                            )
+                            ),
+                      state.scoring ? Text(state.pokerName) : Container(),
                       //Roll(),
                       //Roll(),
                       //Roll(),
