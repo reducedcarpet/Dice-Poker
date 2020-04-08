@@ -28,5 +28,5 @@ jobs:
         uses: ncipollo/release-action@v1
         with:
           artifacts: "build/app/outputs/apk/debug/*.apk,build/macos/Build/Products/Release/*.app"
-          tag: 'APK release - 0.0.1'
+          commit: 'APK release - 0.0.1'
           token: ${{ secrets.GITHUB_TOKEN }}
