@@ -8,12 +8,13 @@ abstract class GameLogicState extends Equatable {
   final List<Roll> currentRolls;
   final bool scoring;
   final String pokerName;
+  final Map<String, int> scoreMatrix;
 
   final List<GameTurn> turns;
   final Scorecard scorecard;
 
   GameLogicState(this.currentTurn, this.currentRolls, this.currentRoll, this.currentRollNumber, this.turns, this.scorecard,
-      {this.scoring, this.pokerName, List<dynamic> props = const <dynamic>[]})
+      {this.scoring, this.pokerName, this.scoreMatrix, List<dynamic> props = const <dynamic>[]})
       : super();
 
   @override
@@ -31,5 +32,10 @@ class NextRoll extends GameLogicState {
 
 class ScoringRoll extends GameLogicState {
   ScoringRoll(currentTurn, currentRoll, currentRollNumber, currentRolls, turns, scorecard, scoring, pokerName)
+      : super(currentTurn, currentRolls, currentRoll, currentRollNumber, turns, scorecard, scoring: scoring, pokerName: pokerName);
+}
+
+class FinalRoll extends GameLogicState {
+  FinalRoll(currentTurn, currentRoll, currentRollNumber, currentRolls, turns, scorecard, scoring, pokerName)
       : super(currentTurn, currentRolls, currentRoll, currentRollNumber, turns, scorecard, scoring: scoring, pokerName: pokerName);
 }

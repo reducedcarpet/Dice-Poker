@@ -1,6 +1,7 @@
 import 'package:dice_poker/blocs/game_logic/game_logic_bloc.dart';
 import 'package:dice_poker/widgets/header.dart';
 import 'package:dice_poker/widgets/roll_area.dart';
+import 'package:dice_poker/widgets/score_area.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
@@ -54,7 +55,7 @@ class _MyHomePageState extends State<MyHomePage> {
                 child: RollArea(),
               ),
               Expanded(
-                child: Container(),
+                child: ScoreArea(),
               ),
             ],
           ),

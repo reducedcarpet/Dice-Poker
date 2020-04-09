@@ -2,15 +2,15 @@
 
 Dice Poker
 
-## Getting Started
+This project is a little hobby game taught to me by my friends in Austria.
 
-This project is a starting point for a Flutter application.
+It's a little bit like Yahtzee as far as I can remember from my childhood.
 
-A few resources to get you started if this is your first Flutter project:
+It's a cross platform mobile app written in Flutter, but you can also preview it online here:
 
-- [Lab: Write your first Flutter app](https://flutter.dev/docs/get-started/codelab)
-- [Cookbook: Useful Flutter samples](https://flutter.dev/docs/cookbook)
+- [Github Pages Dice Poker](https://reducedcarpet.github.io/Dice-Poker/#/)
 
-For help getting started with Flutter, view our
-[online documentation](https://flutter.dev/docs), which offers tutorials,
-samples, guidance on mobile development, and a full API reference.
+Thanks to Flutter Web and Github Pages.
+
+
+
