@@ -20,10 +20,21 @@ class GameLogicBloc extends Bloc<GameLogicEvent, GameLogicState> {
     if (event is NextTurn) {
       List<GameTurn> turns = List.from(state.turns);
       turns.add(GameTurn(state.currentRolls));
-      print('current turn: ' + state.currentTurn.toString());
-      print('turns: ' + turns.toString());
       int newTurn = state.currentTurn + 1;
       yield NextRoll.newTurn(newTurn, turns, state.scorecard);
+    } else if (event is KeepRollTurn) {
+      print('keep turn');
+      Roll curr = state.currentRolls[state.currentRollNumber - 1];
+      print('Skip rolls...');
+      List<Roll> rolls = List.from(state.currentRolls);
+
+      for (int i = 0; i < 3; i++) {
+        if (rolls.length < 3) rolls.add(curr);
+      }
+
+      print('Skip roll');
+
+      yield NextRoll(state.currentTurn, curr, Roll(), 3, rolls, state.turns, state.scorecard);
     } else if (event is RollTurn) {
       /* if (state.currentRollNumber == 2) {
         // last roll of this section

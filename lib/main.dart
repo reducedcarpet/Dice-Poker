@@ -18,46 +18,52 @@ class MyApp extends StatelessWidget {
         primarySwatch: Colors.blue,
         fontFamily: 'Roboto',
       ),
-      home: MyHomePage(title: 'Flutter Dice Poker'),
+      home: DicePokerPage(title: 'Flutter Dice Poker'),
     );
   }
 }
 
-class MyHomePage extends StatefulWidget {
-  MyHomePage({Key key, this.title}) : super(key: key);
+class DicePokerPage extends StatefulWidget {
+  DicePokerPage({Key key, this.title}) : super(key: key);
 
   final String title;
 
   @override
-  _MyHomePageState createState() => _MyHomePageState();
+  _DicePokerPageState createState() => _DicePokerPageState();
 }
 
-class _MyHomePageState extends State<MyHomePage> {
+class _DicePokerPageState extends State<DicePokerPage> {
   @override
   Widget build(BuildContext context) {
-    //final GameLogicBloc gameLogicBloc = context.bloc<GameLogicBloc>();
+    double width = MediaQuery.of(context).size.width;
+    double factor = 1;
+    if (width > 800) {
+      //factor = 0.8;
+      width = 800;
+    }
 
     return Scaffold(
       backgroundColor: Colors.white,
       body: BlocProvider(
         create: (context) => GameLogicBloc(),
-        child: Center(
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: <Widget>[
-              SizedBox(
-                height: 40,
-              ),
-              Container(
-                child: Header(),
-              ),
-              Expanded(
-                child: RollArea(),
-              ),
-              Expanded(
-                child: ScoreArea(),
-              ),
-            ],
+        child: Container(
+          width: width * factor,
+          child: Center(
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: <Widget>[
+                SizedBox(height: 40),
+                Container(
+                  child: Header(),
+                ),
+                Expanded(
+                  child: RollArea(),
+                ),
+                Expanded(
+                  child: ScoreArea(),
+                ),
+              ],
+            ),
           ),
         ),
       ),

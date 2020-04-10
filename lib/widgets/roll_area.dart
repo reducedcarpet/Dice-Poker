@@ -38,110 +38,142 @@ class _RollAreaState extends State<RollArea> {
         builder: (context, GameLogicState state) {
           return Column(
             children: <Widget>[
-              Expanded(
-                child: Container(
-                  width: MediaQuery.of(context).size.width,
-                  margin: EdgeInsets.symmetric(horizontal: 20, vertical: 10),
-                  decoration: BoxDecoration(color: Colors.white, boxShadow: customShadow, borderRadius: BorderRadius.circular(20)),
-                  child: Column(
-                    children: <Widget>[
-                      state.currentRollNumber == 0
-                          ? MaterialButton(
-                              padding: EdgeInsets.all(0),
-                              onPressed: () {
-                                glBloc.add(RollTurn());
-                              },
-                              child: Text('Roll'),
-                            )
-                          : Row(
+              Container(
+                width: MediaQuery.of(context).size.width,
+                margin: EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+                decoration: BoxDecoration(color: Colors.white, boxShadow: customShadow, borderRadius: BorderRadius.circular(20)),
+                child: Column(
+                  children: <Widget>[
+                    state.currentRollNumber == 0
+                        ? MaterialButton(
+                            color: Colors.deepOrange,
+                            padding: EdgeInsets.all(0),
+                            onPressed: () {
+                              glBloc.add(RollTurn());
+                            },
+                            child: Text('Roll'),
+                          )
+                        : Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                            children: <Widget>[
+                              _diceContainer(0, state.firstRoll, state.currentRollNumber < 3),
+                              _diceContainer(1, state.firstRoll, state.currentRollNumber < 3),
+                              _diceContainer(2, state.firstRoll, state.currentRollNumber < 3),
+                              _diceContainer(3, state.firstRoll, state.currentRollNumber < 3),
+                              _diceContainer(4, state.firstRoll, state.currentRollNumber < 3),
+                            ],
+                          ),
+                    state.currentRollNumber != 0 && state.currentRollNumber < 3
+                        ? Padding(
+                            padding: const EdgeInsets.all(8.0),
+                            child: Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                               children: <Widget>[
-                                _diceContainer(0, state.firstRoll, state.currentRollNumber < 3),
-                                _diceContainer(1, state.firstRoll, state.currentRollNumber < 3),
-                                _diceContainer(2, state.firstRoll, state.currentRollNumber < 3),
-                                _diceContainer(3, state.firstRoll, state.currentRollNumber < 3),
-                                _diceContainer(4, state.firstRoll, state.currentRollNumber < 3),
-                                state.currentRollNumber < 3
-                                    ? SizedBox(
-                                        width: 60,
-                                        child: FlatButton(
-                                          padding: EdgeInsets.all(0),
-                                          onPressed: () {
-                                            glBloc.add(RollTurn.withKeepers(keepers));
-                                          },
-                                          child: Container(
-                                            child: Text('Roll'),
-                                          ),
-                                        ),
-                                      )
-                                    : Container(),
+                                FlatButton(
+                                  color: Colors.deepOrange,
+                                  padding: EdgeInsets.all(0),
+                                  onPressed: () {
+                                    glBloc.add(RollTurn.withKeepers(keepers));
+                                  },
+                                  child: Container(
+                                    child: Text('Roll'),
+                                  ),
+                                ),
+                                FlatButton(
+                                  color: Colors.lightBlueAccent,
+                                  padding: EdgeInsets.all(0),
+                                  onPressed: () {
+                                    glBloc.add(KeepRollTurn());
+                                  },
+                                  child: Container(
+                                    child: Text('Keep'),
+                                  ),
+                                ),
                               ],
                             ),
-                      state.currentRollNumber == 3
-                          ? MaterialButton(
-                              padding: EdgeInsets.all(0),
-                              onPressed: () {
-                                keepers = [false, false, false, false, false];
-                                glBloc.add(RollTurn());
-                              },
-                              child: Text('Roll'),
-                            )
-                          : state.currentRollNumber > 3
-                              ? Row(
-                                  children: <Widget>[
-                                    _diceContainer(0, state.secondRoll, true),
-                                    _diceContainer(1, state.secondRoll, true),
-                                    _diceContainer(2, state.secondRoll, true),
-                                    _diceContainer(3, state.secondRoll, true),
-                                    _diceContainer(4, state.secondRoll, true),
-                                    state.currentRollNumber < 6
-                                        ? SizedBox(
-                                            width: 60,
-                                            child: FlatButton(
-                                              padding: EdgeInsets.all(0),
-                                              onPressed: () {
-                                                glBloc.add(RollTurn.withKeepers(keepers));
-                                              },
-                                              child: Container(
-                                                child: Text('Roll'),
-                                              ),
-                                            ),
-                                          )
-                                        : Container(),
-                                  ],
-                                )
-                              : Container(), // */
-                      state.scoring
-                          ? Padding(
-                              padding: const EdgeInsets.all(8.0),
-                              child: Text(state.pokerName),
-                            )
-                          : Container(),
-                      Row(
-                        children: <Widget>[
-                          // keep
-                          // next turn
-                          Padding(
+                          )
+                        : Container(),
+                    state.currentRollNumber == 3
+                        ? MaterialButton(
+                            color: Colors.deepOrange,
+                            padding: EdgeInsets.all(0),
+                            onPressed: () {
+                              keepers = [false, false, false, false, false];
+                              glBloc.add(RollTurn());
+                            },
+                            child: Text('Roll'),
+                          )
+                        : state.currentRollNumber > 3
+                            ? Row(
+                                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                                children: <Widget>[
+                                  _diceContainer(0, state.secondRoll, true),
+                                  _diceContainer(1, state.secondRoll, true),
+                                  _diceContainer(2, state.secondRoll, true),
+                                  _diceContainer(3, state.secondRoll, true),
+                                  _diceContainer(4, state.secondRoll, true),
+                                ],
+                              )
+                            : Container(), // */
+                    state.currentRollNumber > 3 && state.currentRollNumber < 6
+                        ? Padding(
                             padding: const EdgeInsets.all(8.0),
-                            child: SizedBox(
-                              child: FlatButton(
+                            child: Row(mainAxisAlignment: MainAxisAlignment.spaceEvenly, children: <Widget>[
+                              FlatButton(
                                 color: Colors.deepOrange,
                                 padding: EdgeInsets.all(0),
                                 onPressed: () {
-                                  keepers = [false, false, false, false, false];
-                                  glBloc.add(NextTurn());
+                                  glBloc.add(RollTurn.withKeepers(keepers));
                                 },
                                 child: Container(
-                                  child: Text('Next Turn'),
+                                  child: Text('Roll'),
                                 ),
                               ),
-                            ),
+                              FlatButton(
+                                color: Colors.lightBlueAccent,
+                                padding: EdgeInsets.all(0),
+                                onPressed: () {
+                                  glBloc.add(KeepRollTurn());
+                                },
+                                child: Container(
+                                  child: Text('Keep'),
+                                ),
+                              ),
+                            ]),
                           )
-                        ],
-                      ),
+                        : Container(),
+                    state.scoring
+                        ? Padding(
+                            padding: const EdgeInsets.all(8.0),
+                            child: Text(state.pokerName),
+                          )
+                        : Container(),
+                    state.currentRollNumber == 6
+                        ? Row(
+                            children: <Widget>[
+                              // next turn
+                              Padding(
+                                padding: const EdgeInsets.all(8.0),
+                                child: SizedBox(
+                                  child: FlatButton(
+                                    color: Colors.deepOrange,
+                                    padding: EdgeInsets.all(0),
+                                    onPressed: () {
+                                      keepers = [false, false, false, false, false];
+                                      glBloc.add(NextTurn());
+                                    },
+                                    child: Container(
+                                      child: Text('Next Turn'),
+                                    ),
+                                  ),
+                                ),
+                              )
+                            ],
+                          )
+                        : Container(),
 
-                      Text('Turn: ' + (state.currentTurn).toString()),
-                    ],
-                  ),
+                    // Text('Turn: ' + (state.currentTurn).toString()),
+                  ],
                 ),
               ),
             ],
