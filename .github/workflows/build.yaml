@@ -28,6 +28,6 @@ jobs:
         uses: ncipollo/release-action@v1
         with:
           artifacts: "build/app/outputs/apk/debug/*.apk,build/macos/Build/Products/Release/*.app"
-          commit: 'APK release - 0.0.1 - master'
-          tag: 'Github'
+          commit: '0.0.2'
+          tag: 'master/'
           token: ${{ secrets.GITHUB_TOKEN }}
