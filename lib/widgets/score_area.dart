@@ -13,9 +13,11 @@ class ScoreArea extends StatelessWidget {
   List<Widget> titleColumn;
   List<String> titleRow;
 
+  GameLogicBloc glBloc;
+
   @override
   Widget build(BuildContext context) {
-    final GameLogicBloc glBloc = BlocProvider.of<GameLogicBloc>(context);
+    glBloc = BlocProvider.of<GameLogicBloc>(context);
 
     return BlocBuilder<GameLogicBloc, GameLogicState>(
       bloc: glBloc,

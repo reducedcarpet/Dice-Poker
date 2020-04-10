@@ -14,7 +14,6 @@ class Roll {
   }
 
   Roll.randomKeep(List<bool> keep, Roll previous) {
-    print('random keep');
     if (!keep[0])
       roll.add(getChar(rnd.nextInt(6)));
     else

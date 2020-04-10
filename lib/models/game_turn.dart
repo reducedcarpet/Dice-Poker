@@ -1,15 +1,15 @@
 import 'package:dice_poker/models/roll.dart';
+import 'package:equatable/equatable.dart';
 
 final int servePoints = 10;
 
-class GameTurn {
-  bool keepChange = false;
-  bool roll = false;
-  bool score = false;
+class GameTurn extends Equatable {
+  final List<Roll> rolls;
+  //int scoreOne = 0;
+  //int scoreTwo = 0;
 
-  bool serve = false;
-  List<bool> keep = [false, false, false, false, false];
-  List<Roll> rolls = [];
-  int scoreOne = 0;
-  int scoreTwo = 0;
+  GameTurn(this.rolls);
+
+  @override
+  List<Object> get props => [rolls];
 }

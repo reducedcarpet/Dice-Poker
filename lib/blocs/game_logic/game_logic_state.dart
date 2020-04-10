@@ -3,8 +3,11 @@ part of 'game_logic_bloc.dart';
 @immutable
 abstract class GameLogicState extends Equatable {
   final int currentTurn;
-  final Roll currentRoll;
   final int currentRollNumber;
+
+  final Roll firstRoll;
+  final Roll secondRoll;
+
   final List<Roll> currentRolls;
   final bool scoring;
   final String pokerName;
@@ -13,29 +16,31 @@ abstract class GameLogicState extends Equatable {
   final List<GameTurn> turns;
   final Scorecard scorecard;
 
-  GameLogicState(this.currentTurn, this.currentRolls, this.currentRoll, this.currentRollNumber, this.turns, this.scorecard,
-      {this.scoring, this.pokerName, this.scoreMatrix, List<dynamic> props = const <dynamic>[]})
+  GameLogicState(this.currentTurn, this.currentRolls, this.firstRoll, this.secondRoll, this.currentRollNumber, this.turns, this.scorecard,
+      {this.scoring, this.pokerName, this.scoreMatrix})
       : super();
 
   @override
-  List<Object> get props => [currentTurn, currentRoll, currentRolls, currentRollNumber, turns, scorecard];
+  List<Object> get props => [currentTurn, firstRoll, currentRolls, currentRollNumber, turns, scorecard];
 }
 
 class InitialGameLogicState extends GameLogicState {
-  InitialGameLogicState() : super(0, [], Roll(), 0, [], Scorecard(), scoring: false, pokerName: '');
+  InitialGameLogicState() : super(0, [], Roll(), Roll(), 0, [], Scorecard(), scoring: false, pokerName: '');
 }
 
 class NextRoll extends GameLogicState {
-  NextRoll(currentTurn, currentRoll, currentRollNumber, currentRolls, turns, scorecard)
-      : super(currentTurn, currentRolls, currentRoll, currentRollNumber, turns, scorecard, scoring: false, pokerName: '');
-}
+  NextRoll(currentTurn, currentRoll, secondRoll, currentRollNumber, currentRolls, turns, scorecard)
+      : super(currentTurn, currentRolls, currentRoll, secondRoll, currentRollNumber, turns, scorecard, scoring: false, pokerName: '');
 
-class ScoringRoll extends GameLogicState {
-  ScoringRoll(currentTurn, currentRoll, currentRollNumber, currentRolls, turns, scorecard, scoring, pokerName)
-      : super(currentTurn, currentRolls, currentRoll, currentRollNumber, turns, scorecard, scoring: scoring, pokerName: pokerName);
-}
+  NextRoll.scoringRoll(currentTurn, currentRoll, secondRoll, currentRollNumber, currentRolls, turns, scorecard, scoring, pokerName)
+      : super(currentTurn, currentRolls, currentRoll, secondRoll, currentRollNumber, turns, scorecard, scoring: scoring, pokerName: pokerName);
 
-class FinalRoll extends GameLogicState {
-  FinalRoll(currentTurn, currentRoll, currentRollNumber, currentRolls, turns, scorecard, scoring, pokerName)
-      : super(currentTurn, currentRolls, currentRoll, currentRollNumber, turns, scorecard, scoring: scoring, pokerName: pokerName);
+  NextRoll.finalRoll(currentTurn, currentRoll, secondRoll, currentRollNumber, currentRolls, turns, scorecard, scoring, pokerName, scoreMatrix)
+      : super(currentTurn, currentRolls, currentRoll, secondRoll, currentRollNumber, turns, scorecard,
+            scoring: scoring, pokerName: pokerName, scoreMatrix: scoreMatrix);
+
+  NextRoll.newTurn(currentTurn, turns, scorecard) : super(currentTurn, [], Roll(), Roll(), 0, turns, scorecard, scoring: false, pokerName: '', scoreMatrix: {});
+
+  @override
+  List<Object> get props => [currentTurn, firstRoll, currentRolls, currentRollNumber, turns, scorecard];
 }

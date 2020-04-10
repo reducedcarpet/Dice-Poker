@@ -17,47 +17,111 @@ class GameLogicBloc extends Bloc<GameLogicEvent, GameLogicState> {
 
   @override
   Stream<GameLogicState> mapEventToState(GameLogicEvent event) async* {
-    if (event is RollTurn) {
-      if (state.currentRollNumber > 0) {
+    if (event is NextTurn) {
+      List<GameTurn> turns = List.from(state.turns);
+      turns.add(GameTurn(state.currentRolls));
+      print('current turn: ' + state.currentTurn.toString());
+      print('turns: ' + turns.toString());
+      int newTurn = state.currentTurn + 1;
+      yield NextRoll.newTurn(newTurn, turns, state.scorecard);
+    } else if (event is RollTurn) {
+      /* if (state.currentRollNumber == 2) {
+        // last roll of this section
+
         Roll curr = Roll.randomKeep(event.keep, state.currentRolls[state.currentRollNumber - 1]);
         List<Roll> rolls = List.from(state.currentRolls);
         rolls.add(curr);
 
-        Score sc = checkForScore(curr.roll);
+        Map<String, int> scoreMatrix = generateScores(curr.roll);
+        print('final roll: ' + scoreMatrix.toString());
+        yield NextRoll.finalRoll(state.currentTurn, curr, Roll(), state.currentRollNumber + 1, rolls, state.turns, state.scorecard, scoreMatrix[scoreMatrix.keys.toList()[0]],
+            scoreMatrix.keys.toList()[0], scoreMatrix);
+      }
+      else // */
+      if (state.currentRollNumber > 0) {
+        // not the first roll
+        Roll curr = Roll.randomKeep(event.keep, state.currentRolls[state.currentRollNumber - 1]);
+        List<Roll> rolls = List.from(state.currentRolls);
+        rolls.add(curr);
+        Roll second = Roll();
+        Score sc;
+
+        if (state.currentRollNumber > 2) {
+          // we are on the second set of rolls
+          second = curr;
+          curr = state.currentRolls[2];
+          sc = checkForScore(second.roll);
+        } else {
+          sc = checkForScore(curr.roll);
+        }
+
         if (sc.scoring) {
-          yield ScoringRoll(
-              state.currentTurn, curr, state.currentRollNumber + 1, rolls, state.turns, state.scorecard, sc.scoring, 'Served: ' + sc.name.toString());
+          String serve = '';
+          if (!event.keep.contains(true)) serve = 'Served: ';
+          yield NextRoll.scoringRoll(
+              state.currentTurn, curr, second, state.currentRollNumber + 1, rolls, state.turns, state.scorecard, sc.scoring, serve + sc.name.toString());
         } else
-          yield NextRoll(state.currentTurn, curr, state.currentRollNumber + 1, rolls, state.turns, state.scorecard);
-      } else {
+          yield NextRoll(state.currentTurn, curr, second, state.currentRollNumber + 1, rolls, state.turns, state.scorecard);
+      } else if (state.currentRollNumber == 0) {
+        // first roll, so no history to keep dice from
         Roll curr = Roll.random();
         List<Roll> rolls = [curr];
 
         Score sc = checkForScore(curr.roll);
         if (sc.scoring) {
-          yield ScoringRoll(
-              state.currentTurn, curr, state.currentRollNumber + 1, rolls, state.turns, state.scorecard, sc.scoring, 'Served: ' + sc.name.toString());
-        } else
-          yield NextRoll(state.currentTurn, curr, state.currentRollNumber + 1, rolls, state.turns, state.scorecard);
-      }
-    }
-
-    if (event is RollTurnWithKeepers) {
-      if (state.currentRollNumber > 0) {
-        // This should always be the case, can't keep dice if you haven't rolled anything yet.
-        Roll curr = Roll.randomKeep(event.keep, state.currentRolls[state.currentRollNumber - 1]);
-        List<Roll> rolls = List.from(state.currentRolls);
-        rolls.add(curr);
-
-        Score sc = checkForScore(curr.roll);
-        if (sc.scoring) {
           String serve = '';
           if (!event.keep.contains(true)) serve = 'Served: ';
-          yield ScoringRoll(state.currentTurn, curr, state.currentRollNumber + 1, rolls, state.turns, state.scorecard, sc.scoring, serve + sc.name.toString());
+          yield NextRoll.scoringRoll(
+              state.currentTurn, curr, Roll(), state.currentRollNumber + 1, rolls, state.turns, state.scorecard, sc.scoring, serve + sc.name.toString());
         } else
-          yield NextRoll(state.currentTurn, curr, state.currentRollNumber + 1, rolls, state.turns, state.scorecard);
+          yield NextRoll(state.currentTurn, curr, Roll(), state.currentRollNumber + 1, rolls, state.turns, state.scorecard);
       }
     }
+  }
+
+  Map<String, int> generateScores(List<String> roll) {
+    Map<String, int> res = {};
+
+    Score sc = checkForScore(roll);
+    if (sc.scoring) res.addAll({sc.name: sc.score});
+
+    List<String> allA = List.from(roll.where((element) => element == 'A'));
+    if (allA.isNotEmpty) {
+      Score result = Score(true, (_score(allA[0]) * allA.length), 'Aces');
+      res.addAll({result.name: result.score});
+    }
+
+    List<String> allK = List.from(roll.where((element) => element == 'K'));
+    if (allK.isNotEmpty) {
+      Score result = Score(true, (_score(allK[0]) * allK.length), 'Kings');
+      res.addAll({result.name: result.score});
+    }
+
+    List<String> allQ = List.from(roll.where((element) => element == 'Q'));
+    if (allQ.isNotEmpty) {
+      Score result = Score(true, (_score(allQ[0]) * allQ.length), 'Queens');
+      res.addAll({result.name: result.score});
+    }
+
+    List<String> allJ = List.from(roll.where((element) => element == 'J'));
+    if (allJ.isNotEmpty) {
+      Score result = Score(true, (_score(allJ[0]) * allJ.length), 'Jacks');
+      res.addAll({result.name: result.score});
+    }
+
+    List<String> allTen = List.from(roll.where((element) => element == '10'));
+    if (allTen.isNotEmpty) {
+      Score result = Score(true, (_score(allTen[0]) * allTen.length), 'Tens');
+      res.addAll({result.name: result.score});
+    }
+
+    List<String> allNine = List.from(roll.where((element) => element == '9'));
+    if (allNine.isNotEmpty) {
+      Score result = Score(true, (_score(allNine[0]) * allNine.length), 'Nines');
+      res.addAll({result.name: result.score});
+    }
+
+    return res;
   }
 
   Score checkForScore(List<String> roll) {
@@ -168,6 +232,7 @@ class GameLogicBloc extends Bloc<GameLogicEvent, GameLogicState> {
     if (die == 'J') return 3;
     if (die == '10') return 2;
     if (die == '9') return 1;
+    return 0;
   }
 
   String _name(String die) {
@@ -177,5 +242,6 @@ class GameLogicBloc extends Bloc<GameLogicEvent, GameLogicState> {
     if (die == 'J') return 'Jack';
     if (die == '10') return 'Ten';
     if (die == '9') return 'Nine';
+    return '';
   }
 }
