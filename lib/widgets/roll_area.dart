@@ -101,7 +101,7 @@ class _RollAreaState extends State<RollArea> {
                               keepers = [false, false, false, false, false];
                               glBloc.add(RollTurn());
                             },
-                            child: Text('Roll'),
+                            child: Text('2nd Roll'),
                           )
                         : state.currentRollNumber > 3
                             ? Row(
@@ -127,16 +127,6 @@ class _RollAreaState extends State<RollArea> {
                                 },
                                 child: Container(
                                   child: Text('Roll'),
-                                ),
-                              ),
-                              FlatButton(
-                                color: Colors.lightBlueAccent,
-                                padding: EdgeInsets.all(0),
-                                onPressed: () {
-                                  glBloc.add(KeepRollTurn());
-                                },
-                                child: Container(
-                                  child: Text('Keep'),
                                 ),
                               ),
                             ]),
@@ -167,7 +157,17 @@ class _RollAreaState extends State<RollArea> {
                                     ),
                                   ),
                                 ),
-                              )
+                              ),
+                              FlatButton(
+                                color: Colors.lightBlueAccent,
+                                padding: EdgeInsets.all(0),
+                                onPressed: () {
+                                  glBloc.add(ScoreTurn());
+                                },
+                                child: Container(
+                                  child: Text('Score'),
+                                ),
+                              ),
                             ],
                           )
                         : Container(),

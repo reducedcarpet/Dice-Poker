@@ -42,27 +42,27 @@ class _DicePokerPageState extends State<DicePokerPage> {
       width = 800;
     }
 
-    return Scaffold(
-      backgroundColor: Colors.white,
-      body: BlocProvider(
-        create: (context) => GameLogicBloc(),
-        child: Container(
-          width: width * factor,
+    return Center(
+      child: Scaffold(
+        backgroundColor: Colors.white,
+        body: BlocProvider(
+          create: (context) => GameLogicBloc(),
           child: Center(
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: <Widget>[
-                SizedBox(height: 40),
-                Container(
-                  child: Header(),
+            child: Container(
+              width: width * factor,
+              child: Center(
+                child: ListView(
+                  //mainAxisSize: MainAxisSize.min,
+                  scrollDirection: Axis.vertical,
+                  //shrinkWrap: true,
+                  children: <Widget>[
+                    SizedBox(height: 40),
+                    Header(),
+                    RollArea(),
+                    Container(height: width, child: ScoreArea()),
+                  ],
                 ),
-                Expanded(
-                  child: RollArea(),
-                ),
-                Expanded(
-                  child: ScoreArea(),
-                ),
-              ],
+              ),
             ),
           ),
         ),

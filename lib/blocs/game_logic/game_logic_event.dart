@@ -20,6 +20,10 @@ class KeepRollTurn extends GameLogicEvent {
   KeepRollTurn() : super([false, false, false, false, false]);
 }
 
+class ScoreTurn extends GameLogicEvent {
+  ScoreTurn() : super([false, false, false, false, false]);
+}
+
 class NextTurn extends GameLogicEvent {
   NextTurn() : super([false, false, false, false, false]);
 }

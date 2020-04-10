@@ -35,6 +35,18 @@ class GameLogicBloc extends Bloc<GameLogicEvent, GameLogicState> {
       print('Skip roll');
 
       yield NextRoll(state.currentTurn, curr, Roll(), 3, rolls, state.turns, state.scorecard);
+    } else if (event is ScoreTurn) {
+      List<GameTurn> turns = List.from(state.turns);
+      turns.add(GameTurn(state.currentRolls));
+      int newTurn = state.currentTurn + 1;
+      Roll curr = state.currentRolls[state.currentRolls.length - 1];
+      Roll first = state.currentRolls[2];
+      List<Score> scoreMatrix = generateScores('1st Roll: ', first.roll);
+      scoreMatrix.addAll(generateScores('2nd Roll: ', curr.roll));
+
+      print('score matrix: ' + scoreMatrix.toString());
+
+      yield NextRoll.finalRoll(newTurn, turns, state.scorecard, true, '', scoreMatrix);
     } else if (event is RollTurn) {
       /* if (state.currentRollNumber == 2) {
         // last roll of this section
@@ -90,46 +102,46 @@ class GameLogicBloc extends Bloc<GameLogicEvent, GameLogicState> {
     }
   }
 
-  Map<String, int> generateScores(List<String> roll) {
-    Map<String, int> res = {};
+  List<Score> generateScores(String prefix, List<String> roll) {
+    List<Score> res = [];
 
     Score sc = checkForScore(roll);
-    if (sc.scoring) res.addAll({sc.name: sc.score});
+    if (sc.scoring) res.add(sc);
 
     List<String> allA = List.from(roll.where((element) => element == 'A'));
     if (allA.isNotEmpty) {
-      Score result = Score(true, (_score(allA[0]) * allA.length), 'Aces');
-      res.addAll({result.name: result.score});
+      Score result = Score(true, (_score(allA[0]) * allA.length), 'Aces', 5);
+      res.add(result);
     }
 
     List<String> allK = List.from(roll.where((element) => element == 'K'));
     if (allK.isNotEmpty) {
-      Score result = Score(true, (_score(allK[0]) * allK.length), 'Kings');
-      res.addAll({result.name: result.score});
+      Score result = Score(true, (_score(allK[0]) * allK.length), 'Kings', 4);
+      res.add(result);
     }
 
     List<String> allQ = List.from(roll.where((element) => element == 'Q'));
     if (allQ.isNotEmpty) {
-      Score result = Score(true, (_score(allQ[0]) * allQ.length), 'Queens');
-      res.addAll({result.name: result.score});
+      Score result = Score(true, (_score(allQ[0]) * allQ.length), 'Queens', 3);
+      res.add(result);
     }
 
     List<String> allJ = List.from(roll.where((element) => element == 'J'));
     if (allJ.isNotEmpty) {
-      Score result = Score(true, (_score(allJ[0]) * allJ.length), 'Jacks');
-      res.addAll({result.name: result.score});
+      Score result = Score(true, (_score(allJ[0]) * allJ.length), 'Jacks', 2);
+      res.add(result);
     }
 
     List<String> allTen = List.from(roll.where((element) => element == '10'));
     if (allTen.isNotEmpty) {
-      Score result = Score(true, (_score(allTen[0]) * allTen.length), 'Tens');
-      res.addAll({result.name: result.score});
+      Score result = Score(true, (_score(allTen[0]) * allTen.length), 'Tens', 1);
+      res.add(result);
     }
 
     List<String> allNine = List.from(roll.where((element) => element == '9'));
     if (allNine.isNotEmpty) {
-      Score result = Score(true, (_score(allNine[0]) * allNine.length), 'Nines');
-      res.addAll({result.name: result.score});
+      Score result = Score(true, (_score(allNine[0]) * allNine.length), 'Nines', 0);
+      res.add(result);
     }
 
     return res;
@@ -138,21 +150,21 @@ class GameLogicBloc extends Bloc<GameLogicEvent, GameLogicState> {
   Score checkForScore(List<String> roll) {
     if (roll.contains('A') && roll.contains('K') && roll.contains('Q') && roll.contains('J') && roll.contains('10')) {
       // big street
-      Score result = Score(true, 25, 'Big Street');
+      Score result = Score(true, 25, 'Big Street', 7);
       return result;
     } else if (roll.contains('K') && roll.contains('Q') && roll.contains('J') && roll.contains('10') && roll.contains('9')) {
       // small street
-      Score result = Score(true, 20, 'Small Street');
+      Score result = Score(true, 20, 'Small Street', 7);
       return result;
     } else if (roll[0] == roll[1] && roll[1] == roll[2] && roll[2] == roll[3] && roll[3] == roll[4]) {
       // grand
-      Score result = Score(true, 50 + (_score(roll[0]) * 5), _name(roll[0]) + ' Grand');
+      Score result = Score(true, 50 + (_score(roll[0]) * 5), _name(roll[0]) + ' Grand', 10);
       return result;
     } else {
       List<String> allA = List.from(roll.where((element) => element == 'A'));
       if (allA.length == 4) {
         // Poker
-        Score result = Score(true, 40 + (_score(allA[0]) * 4), 'Ace Poker');
+        Score result = Score(true, 40 + (_score(allA[0]) * 4), 'Ace Poker', 9);
         return result;
       } else if (allA.length == 3) {
         // Possible Full House
@@ -164,7 +176,7 @@ class GameLogicBloc extends Bloc<GameLogicEvent, GameLogicState> {
       List<String> allK = List.from(roll.where((element) => element == 'K'));
       if (allK.length == 4) {
         // Poker
-        Score result = Score(true, 40 + (_score(allK[0]) * 4), 'King Poker');
+        Score result = Score(true, 40 + (_score(allK[0]) * 4), 'King Poker', 9);
         return result;
       } else if (allK.length == 3) {
         // Possible Full House
@@ -176,7 +188,7 @@ class GameLogicBloc extends Bloc<GameLogicEvent, GameLogicState> {
       List<String> allQ = List.from(roll.where((element) => element == 'Q'));
       if (allQ.length == 4) {
         // Poker
-        Score result = Score(true, 40 + (_score(allQ[0]) * 4), 'Queen Poker');
+        Score result = Score(true, 40 + (_score(allQ[0]) * 4), 'Queen Poker', 9);
         return result;
       } else if (allQ.length == 3) {
         // Possible Full House
@@ -188,7 +200,7 @@ class GameLogicBloc extends Bloc<GameLogicEvent, GameLogicState> {
       List<String> allJ = List.from(roll.where((element) => element == 'J'));
       if (allJ.length == 4) {
         // Poker
-        Score result = Score(true, 40 + (_score(allJ[0]) * 4), 'Jack Poker');
+        Score result = Score(true, 40 + (_score(allJ[0]) * 4), 'Jack Poker', 9);
         return result;
       } else if (allJ.length == 3) {
         // Possible Full House
@@ -200,7 +212,7 @@ class GameLogicBloc extends Bloc<GameLogicEvent, GameLogicState> {
       List<String> allTen = List.from(roll.where((element) => element == '10'));
       if (allTen.length == 4) {
         // Poker
-        Score result = Score(true, 40 + (_score(allTen[0]) * 4), 'Ten Poker');
+        Score result = Score(true, 40 + (_score(allTen[0]) * 4), 'Ten Poker', 9);
         return result;
       } else if (allTen.length == 3) {
         // Possible Full House
@@ -212,7 +224,7 @@ class GameLogicBloc extends Bloc<GameLogicEvent, GameLogicState> {
       List<String> allNine = List.from(roll.where((element) => element == '9'));
       if (allNine.length == 4) {
         // Poker
-        Score result = Score(true, 40 + (_score(allNine[0]) * 4), 'Nine Poker');
+        Score result = Score(true, 40 + (_score(allNine[0]) * 4), 'Nine Poker', 9);
         return result;
       } else if (allNine.length == 3) {
         // Possible Full House
@@ -222,7 +234,7 @@ class GameLogicBloc extends Bloc<GameLogicEvent, GameLogicState> {
       }
     }
 
-    Score result = Score(false, 0, '');
+    Score result = Score(false, 0, '', -1);
     return result;
   }
 
@@ -230,10 +242,10 @@ class GameLogicBloc extends Bloc<GameLogicEvent, GameLogicState> {
     List<String> others = List.from(roll.where((element) => element != allA[0]));
     if (others[0] == others[1]) {
       // Full House
-      Score result = Score(true, 30 + (_score(allA[0]) * 3), 'Full House - ' + _name(allA[0]) + 's over ' + _name(others[0]) + 's');
+      Score result = Score(true, 30 + (_score(allA[0]) * 3), 'Full House - ' + _name(allA[0]) + 's over ' + _name(others[0]) + 's', 8);
       return result;
     } else
-      return Score(false, 0, '');
+      return Score(false, 0, '', -1);
   }
 
   int _score(String die) {
