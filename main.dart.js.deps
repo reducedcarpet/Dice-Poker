@@ -5,6 +5,7 @@ file:///home/runner/work/Dice-Poker/Dice-Poker/lib/blocs/game_logic/game_logic_e
 file:///home/runner/work/Dice-Poker/Dice-Poker/lib/blocs/game_logic/game_logic_state.dart
 file:///home/runner/work/Dice-Poker/Dice-Poker/lib/data.dart
 file:///home/runner/work/Dice-Poker/Dice-Poker/lib/main.dart
+file:///home/runner/work/Dice-Poker/Dice-Poker/lib/models/ScoreItem.dart
 file:///home/runner/work/Dice-Poker/Dice-Poker/lib/models/game_turn.dart
 file:///home/runner/work/Dice-Poker/Dice-Poker/lib/models/roll.dart
 file:///home/runner/work/Dice-Poker/Dice-Poker/lib/models/score.dart
@@ -13,6 +14,9 @@ file:///home/runner/work/Dice-Poker/Dice-Poker/lib/widgets/dice.dart
 file:///home/runner/work/Dice-Poker/Dice-Poker/lib/widgets/header.dart
 file:///home/runner/work/Dice-Poker/Dice-Poker/lib/widgets/roll_area.dart
 file:///home/runner/work/Dice-Poker/Dice-Poker/lib/widgets/score_area.dart
+file:///opt/hostedtoolcache/flutter/1.12.14-dev/x64/.pub-cache/hosted/pub.dartlang.org/auto_size_text-2.1.0/lib/auto_size_text.dart
+file:///opt/hostedtoolcache/flutter/1.12.14-dev/x64/.pub-cache/hosted/pub.dartlang.org/auto_size_text-2.1.0/lib/src/auto_size_group.dart
+file:///opt/hostedtoolcache/flutter/1.12.14-dev/x64/.pub-cache/hosted/pub.dartlang.org/auto_size_text-2.1.0/lib/src/auto_size_text.dart
 file:///opt/hostedtoolcache/flutter/1.12.14-dev/x64/.pub-cache/hosted/pub.dartlang.org/bloc-3.0.0/lib/bloc.dart
 file:///opt/hostedtoolcache/flutter/1.12.14-dev/x64/.pub-cache/hosted/pub.dartlang.org/bloc-3.0.0/lib/src/bloc.dart
 file:///opt/hostedtoolcache/flutter/1.12.14-dev/x64/.pub-cache/hosted/pub.dartlang.org/bloc-3.0.0/lib/src/bloc_delegate.dart
@@ -130,7 +134,6 @@ file:///opt/hostedtoolcache/flutter/1.12.14-dev/x64/.pub-cache/hosted/pub.dartla
 file:///opt/hostedtoolcache/flutter/1.12.14-dev/x64/.pub-cache/hosted/pub.dartlang.org/rxdart-0.23.1/lib/streams.dart
 file:///opt/hostedtoolcache/flutter/1.12.14-dev/x64/.pub-cache/hosted/pub.dartlang.org/rxdart-0.23.1/lib/subjects.dart
 file:///opt/hostedtoolcache/flutter/1.12.14-dev/x64/.pub-cache/hosted/pub.dartlang.org/rxdart-0.23.1/lib/transformers.dart
-file:///opt/hostedtoolcache/flutter/1.12.14-dev/x64/.pub-cache/hosted/pub.dartlang.org/table_sticky_headers-1.1.2/lib/table_sticky_headers.dart
 file:///opt/hostedtoolcache/flutter/1.12.14-dev/x64/.pub-cache/hosted/pub.dartlang.org/typed_data-1.1.6/lib/typed_buffers.dart
 file:///opt/hostedtoolcache/flutter/1.12.14-dev/x64/.pub-cache/hosted/pub.dartlang.org/vector_math-2.0.8/lib/hash.dart
 file:///opt/hostedtoolcache/flutter/1.12.14-dev/x64/.pub-cache/hosted/pub.dartlang.org/vector_math-2.0.8/lib/src/vector_math_64/aabb2.dart
