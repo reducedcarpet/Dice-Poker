@@ -17,22 +17,31 @@ class GameLogicBloc extends Bloc<GameLogicEvent, GameLogicState> {
 
   @override
   Stream<GameLogicState> mapEventToState(GameLogicEvent event) async* {
-    if (event is NextTurn) {
+    if (event is PlaceScore) {
+      Scorecard scs = state.scorecard;
+      if (event.x == 0) {
+        scs.down[event.index] = event.score;
+      } else if (event.x == 1) {
+        scs.up[event.index] = event.score;
+      } else if (event.x == 2) {
+        scs.any[event.index] = event.score;
+      }
+      List<GameTurn> turns = List.from(state.turns);
+      turns.add(GameTurn(state.currentRolls));
+      int newTurn = state.currentTurn + 1;
+      yield NextRoll.newTurn(newTurn, turns, scs);
+    } else if (event is NextTurn) {
       List<GameTurn> turns = List.from(state.turns);
       turns.add(GameTurn(state.currentRolls));
       int newTurn = state.currentTurn + 1;
       yield NextRoll.newTurn(newTurn, turns, state.scorecard);
     } else if (event is KeepRollTurn) {
-      print('keep turn');
       Roll curr = state.currentRolls[state.currentRollNumber - 1];
-      print('Skip rolls...');
       List<Roll> rolls = List.from(state.currentRolls);
 
       for (int i = 0; i < 3; i++) {
         if (rolls.length < 3) rolls.add(curr);
       }
-
-      print('Skip roll');
 
       yield NextRoll(state.currentTurn, curr, Roll(), 3, rolls, state.turns, state.scorecard);
     } else if (event is ScoreTurn) {
@@ -43,8 +52,6 @@ class GameLogicBloc extends Bloc<GameLogicEvent, GameLogicState> {
       Roll first = state.currentRolls[2];
       List<Score> scoreMatrix = generateScores('1st Roll: ', first.roll);
       scoreMatrix.addAll(generateScores('2nd Roll: ', curr.roll));
-
-      print('score matrix: ' + scoreMatrix.toString());
 
       yield NextRoll.finalRoll(newTurn, turns, state.scorecard, true, '', scoreMatrix);
     } else if (event is RollTurn) {

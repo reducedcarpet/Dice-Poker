@@ -51,15 +51,15 @@ class _DicePokerPageState extends State<DicePokerPage> {
             child: Container(
               width: width * factor,
               child: Center(
-                child: ListView(
+                child: Column(
                   //mainAxisSize: MainAxisSize.min,
-                  scrollDirection: Axis.vertical,
+                  //scrollDirection: Axis.vertical,
                   //shrinkWrap: true,
                   children: <Widget>[
                     SizedBox(height: 40),
                     Header(),
                     RollArea(),
-                    Container(height: width, child: ScoreArea()),
+                    ScoreArea(),
                   ],
                 ),
               ),

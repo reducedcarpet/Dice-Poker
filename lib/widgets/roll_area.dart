@@ -129,6 +129,17 @@ class _RollAreaState extends State<RollArea> {
                                   child: Text('Roll'),
                                 ),
                               ),
+                              FlatButton(
+                                color: Colors.lightBlueAccent,
+                                padding: EdgeInsets.all(0),
+                                onPressed: () {
+                                  keepers = [false, false, false, false, false];
+                                  glBloc.add(ScoreTurn());
+                                },
+                                child: Container(
+                                  child: Text('Score'),
+                                ),
+                              ),
                             ]),
                           )
                         : Container(),
@@ -162,6 +173,7 @@ class _RollAreaState extends State<RollArea> {
                                 color: Colors.lightBlueAccent,
                                 padding: EdgeInsets.all(0),
                                 onPressed: () {
+                                  keepers = [false, false, false, false, false];
                                   glBloc.add(ScoreTurn());
                                 },
                                 child: Container(
