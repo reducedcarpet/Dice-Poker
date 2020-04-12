@@ -18,24 +18,48 @@ class GameLogicBloc extends Bloc<GameLogicEvent, GameLogicState> {
   @override
   Stream<GameLogicState> mapEventToState(GameLogicEvent event) async* {
     if (event is PlaceScore) {
+      ///////////////////////////////////////////////////////////////////////////////
       Scorecard scs = state.scorecard;
       if (event.x == 0) {
-        scs.down[event.index] = event.score;
+        scs.down[event.index] = event.score.score;
       } else if (event.x == 1) {
-        scs.up[event.index] = event.score;
+        scs.up[event.index] = event.score.score;
       } else if (event.x == 2) {
-        scs.any[event.index] = event.score;
+        scs.any[event.index] = event.score.score;
       }
-      List<GameTurn> turns = List.from(state.turns);
-      turns.add(GameTurn(state.currentRolls));
-      int newTurn = state.currentTurn + 1;
-      yield NextRoll.newTurn(newTurn, turns, scs);
+
+      print('First: ' + state.scoreMatrixFirst.toString() + " first: " + event.firstScore.toString());
+      print('Second: ' + state.scoreMatrixSecond.toString());
+
+      if (state.scoreMatrixSecond.isEmpty && state.scoreMatrixFirst.isEmpty) {
+        List<GameTurn> turns = List.from(state.turns);
+        turns.add(GameTurn(state.currentRolls));
+        int newTurn = state.currentTurn + 1;
+        print('Next turn 1');
+        yield NextRoll.newTurn(newTurn, turns, scs);
+      } else if (event.firstScore && state.scoreMatrixSecond.isNotEmpty) {
+        print('Chose first roll');
+        yield NextRoll.finalRoll(
+            state.currentTurn, state.currentRollNumber, state.firstRoll, state.secondRoll, state.turns, scs, true, '', [], state.scoreMatrixSecond);
+      } else if (!event.firstScore && state.scoreMatrixFirst.isNotEmpty) {
+        print('Chose second roll ' + state.scoreMatrixFirst.toString());
+        yield NextRoll.finalRoll(
+            state.currentTurn, state.currentRollNumber, state.firstRoll, state.secondRoll, state.turns, scs, true, '', state.scoreMatrixFirst, []);
+      } else {
+        print('next turn 2');
+        List<GameTurn> turns = List.from(state.turns);
+        turns.add(GameTurn(state.currentRolls));
+        int newTurn = state.currentTurn + 1;
+        yield NextRoll.newTurn(newTurn, turns, scs);
+      }
     } else if (event is NextTurn) {
+      ////////////////////////////////////////////////////////////////////////
       List<GameTurn> turns = List.from(state.turns);
       turns.add(GameTurn(state.currentRolls));
       int newTurn = state.currentTurn + 1;
       yield NextRoll.newTurn(newTurn, turns, state.scorecard);
     } else if (event is KeepRollTurn) {
+      /////////////////////////////////////////////////////////////////////
       Roll curr = state.currentRolls[state.currentRollNumber - 1];
       List<Roll> rolls = List.from(state.currentRolls);
 
@@ -45,29 +69,16 @@ class GameLogicBloc extends Bloc<GameLogicEvent, GameLogicState> {
 
       yield NextRoll(state.currentTurn, curr, Roll(), 3, rolls, state.turns, state.scorecard);
     } else if (event is ScoreTurn) {
-      List<GameTurn> turns = List.from(state.turns);
-      turns.add(GameTurn(state.currentRolls));
-      int newTurn = state.currentTurn + 1;
+      ////////////////////////////////////////////////////////////////////////
       Roll curr = state.currentRolls[state.currentRolls.length - 1];
       Roll first = state.currentRolls[2];
-      List<Score> scoreMatrix = generateScores('1st Roll: ', first.roll);
-      scoreMatrix.addAll(generateScores('2nd Roll: ', curr.roll));
+      List<Score> scoreMatrixFirst = generateScores('1st Roll: ', first.roll);
+      List<Score> scoreMatrixSecond = generateScores('2nd Roll: ', curr.roll);
 
-      yield NextRoll.finalRoll(newTurn, turns, state.scorecard, true, '', scoreMatrix);
+      yield NextRoll.finalRoll(state.currentTurn, state.currentRollNumber, state.firstRoll, state.secondRoll, state.turns, state.scorecard, true, '',
+          scoreMatrixFirst, scoreMatrixSecond);
     } else if (event is RollTurn) {
-      /* if (state.currentRollNumber == 2) {
-        // last roll of this section
-
-        Roll curr = Roll.randomKeep(event.keep, state.currentRolls[state.currentRollNumber - 1]);
-        List<Roll> rolls = List.from(state.currentRolls);
-        rolls.add(curr);
-
-        Map<String, int> scoreMatrix = generateScores(curr.roll);
-        print('final roll: ' + scoreMatrix.toString());
-        yield NextRoll.finalRoll(state.currentTurn, curr, Roll(), state.currentRollNumber + 1, rolls, state.turns, state.scorecard, scoreMatrix[scoreMatrix.keys.toList()[0]],
-            scoreMatrix.keys.toList()[0], scoreMatrix);
-      }
-      else // */
+      /////////////////////////////////////////////////////////////////////////
       if (state.currentRollNumber > 0) {
         // not the first roll
         Roll curr = Roll.randomKeep(event.keep, state.currentRolls[state.currentRollNumber - 1]);

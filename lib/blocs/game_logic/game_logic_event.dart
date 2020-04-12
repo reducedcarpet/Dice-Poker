@@ -5,7 +5,7 @@ abstract class GameLogicEvent extends Equatable {
   final List<bool> keep;
   final int x;
   final int index;
-  final int score;
+  final Score score;
 
   GameLogicEvent(this.keep, this.x, this.index, this.score);
 
@@ -14,23 +14,24 @@ abstract class GameLogicEvent extends Equatable {
 }
 
 class RollTurn extends GameLogicEvent {
-  RollTurn() : super([false, false, false, false, false], -2, -2, 0);
+  RollTurn() : super([false, false, false, false, false], -2, -2, null);
 
-  RollTurn.withKeepers(List<bool> keepers) : super(keepers, -2, -2, 0);
+  RollTurn.withKeepers(List<bool> keepers) : super(keepers, -2, -2, null);
 }
 
 class KeepRollTurn extends GameLogicEvent {
-  KeepRollTurn() : super([false, false, false, false, false], -2, -2, 0);
+  KeepRollTurn() : super([false, false, false, false, false], -2, -2, null);
 }
 
 class ScoreTurn extends GameLogicEvent {
-  ScoreTurn() : super([false, false, false, false, false], -2, -2, 0);
+  ScoreTurn() : super([false, false, false, false, false], -2, -2, null);
 }
 
 class PlaceScore extends GameLogicEvent {
-  PlaceScore(int x, int y, int score) : super([false, false, false, false, false], x, y, score);
+  final bool firstScore;
+  PlaceScore(int x, int y, Score score, this.firstScore) : super([false, false, false, false, false], x, y, score);
 }
 
 class NextTurn extends GameLogicEvent {
-  NextTurn() : super([false, false, false, false, false], -2, -2, 0);
+  NextTurn() : super([false, false, false, false, false], -2, -2, null);
 }
