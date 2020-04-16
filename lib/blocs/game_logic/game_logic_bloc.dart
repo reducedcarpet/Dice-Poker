@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:bloc/bloc.dart';
+import 'package:dice_poker/models/ScoreItem.dart';
 import 'package:dice_poker/models/game_turn.dart';
 import 'package:dice_poker/models/roll.dart';
 import 'package:dice_poker/models/score.dart';
@@ -13,112 +14,145 @@ part 'game_logic_state.dart';
 
 class GameLogicBloc extends Bloc<GameLogicEvent, GameLogicState> {
   @override
-  GameLogicState get initialState => InitialGameLogicState();
+  GameLogicState get initialState {
+    return InitialGameLogicState(_initData(Scorecard(), [], []));
+  }
 
   @override
   Stream<GameLogicState> mapEventToState(GameLogicEvent event) async* {
     if (event is PlaceScore) {
-      ///////////////////////////////////////////////////////////////////////////////
-      Scorecard scs = state.scorecard;
-      if (event.x == 0) {
-        scs.down[event.index] = event.score.score;
-      } else if (event.x == 1) {
-        scs.up[event.index] = event.score.score;
-      } else if (event.x == 2) {
-        scs.any[event.index] = event.score.score;
-      }
-
-      print('First: ' + state.scoreMatrixFirst.toString() + " first: " + event.firstScore.toString());
-      print('Second: ' + state.scoreMatrixSecond.toString());
-
-      if (state.scoreMatrixSecond.isEmpty && state.scoreMatrixFirst.isEmpty) {
-        List<GameTurn> turns = List.from(state.turns);
-        turns.add(GameTurn(state.currentRolls));
-        int newTurn = state.currentTurn + 1;
-        print('Next turn 1');
-        yield NextRoll.newTurn(newTurn, turns, scs);
-      } else if (event.firstScore && state.scoreMatrixSecond.isNotEmpty) {
-        print('Chose first roll');
-        yield NextRoll.finalRoll(
-            state.currentTurn, state.currentRollNumber, state.firstRoll, state.secondRoll, state.turns, scs, true, '', [], state.scoreMatrixSecond);
-      } else if (!event.firstScore && state.scoreMatrixFirst.isNotEmpty) {
-        print('Chose second roll ' + state.scoreMatrixFirst.toString());
-        yield NextRoll.finalRoll(
-            state.currentTurn, state.currentRollNumber, state.firstRoll, state.secondRoll, state.turns, scs, true, '', state.scoreMatrixFirst, []);
-      } else {
-        print('next turn 2');
-        List<GameTurn> turns = List.from(state.turns);
-        turns.add(GameTurn(state.currentRolls));
-        int newTurn = state.currentTurn + 1;
-        yield NextRoll.newTurn(newTurn, turns, scs);
-      }
+      yield handlePlaceScore(event);
     } else if (event is NextTurn) {
-      ////////////////////////////////////////////////////////////////////////
+      yield handleNextTurn();
+    } else if (event is KeepRollTurn) {
+      yield handleKeepRollTurn();
+    } else if (event is ScoreTurn) {
+      yield handleScoreTurn();
+    } else if (event is RollTurn) {
+      yield handleRollTurn(event);
+    }
+  }
+
+  /////////////////////////////////////////////////////////////////////
+  // Event Handlers
+  /////////////////////////////////////////////////////////////////////
+
+  handlePlaceScore(PlaceScore event) async* {
+    Scorecard scs = state.scorecard;
+    if (event.x == 0) {
+      scs.down[event.index] = event.score.score;
+    } else if (event.x == 1) {
+      scs.up[event.index] = event.score.score;
+    } else if (event.x == 2) {
+      scs.any[event.index] = event.score.score;
+    }
+
+    print('First: ' + state.scoreMatrixFirst.toString() + " first: " + event.firstScore.toString());
+    print('Second: ' + state.scoreMatrixSecond.toString());
+
+    List<List<ScoreItem>> data = _initData(state.scorecard, state.scoreMatrixFirst, state.scoreMatrixSecond);
+
+    if (state.scoreMatrixSecond.isEmpty && state.scoreMatrixFirst.isEmpty) {
       List<GameTurn> turns = List.from(state.turns);
       turns.add(GameTurn(state.currentRolls));
       int newTurn = state.currentTurn + 1;
-      yield NextRoll.newTurn(newTurn, turns, state.scorecard);
-    } else if (event is KeepRollTurn) {
-      /////////////////////////////////////////////////////////////////////
-      Roll curr = state.currentRolls[state.currentRollNumber - 1];
-      List<Roll> rolls = List.from(state.currentRolls);
-
-      for (int i = 0; i < 3; i++) {
-        if (rolls.length < 3) rolls.add(curr);
-      }
-
-      yield NextRoll(state.currentTurn, curr, Roll(), 3, rolls, state.turns, state.scorecard);
-    } else if (event is ScoreTurn) {
-      ////////////////////////////////////////////////////////////////////////
-      Roll curr = state.currentRolls[state.currentRolls.length - 1];
-      Roll first = state.currentRolls[2];
-      List<Score> scoreMatrixFirst = generateScores('1st Roll: ', first.roll);
-      List<Score> scoreMatrixSecond = generateScores('2nd Roll: ', curr.roll);
-
-      yield NextRoll.finalRoll(state.currentTurn, state.currentRollNumber, state.firstRoll, state.secondRoll, state.turns, state.scorecard, true, '',
-          scoreMatrixFirst, scoreMatrixSecond);
-    } else if (event is RollTurn) {
-      /////////////////////////////////////////////////////////////////////////
-      if (state.currentRollNumber > 0) {
-        // not the first roll
-        Roll curr = Roll.randomKeep(event.keep, state.currentRolls[state.currentRollNumber - 1]);
-        List<Roll> rolls = List.from(state.currentRolls);
-        rolls.add(curr);
-        Roll second = Roll();
-        Score sc;
-
-        if (state.currentRollNumber > 2) {
-          // we are on the second set of rolls
-          second = curr;
-          curr = state.currentRolls[2];
-          sc = checkForScore(second.roll);
-        } else {
-          sc = checkForScore(curr.roll);
-        }
-
-        if (sc.scoring) {
-          String serve = '';
-          if (!event.keep.contains(true)) serve = 'Served: ';
-          yield NextRoll.scoringRoll(
-              state.currentTurn, curr, second, state.currentRollNumber + 1, rolls, state.turns, state.scorecard, sc.scoring, serve + sc.name.toString());
-        } else
-          yield NextRoll(state.currentTurn, curr, second, state.currentRollNumber + 1, rolls, state.turns, state.scorecard);
-      } else if (state.currentRollNumber == 0) {
-        // first roll, so no history to keep dice from
-        Roll curr = Roll.random();
-        List<Roll> rolls = [curr];
-
-        Score sc = checkForScore(curr.roll);
-        if (sc.scoring) {
-          String serve = '';
-          if (!event.keep.contains(true)) serve = 'Served: ';
-          yield NextRoll.scoringRoll(
-              state.currentTurn, curr, Roll(), state.currentRollNumber + 1, rolls, state.turns, state.scorecard, sc.scoring, serve + sc.name.toString());
-        } else
-          yield NextRoll(state.currentTurn, curr, Roll(), state.currentRollNumber + 1, rolls, state.turns, state.scorecard);
-      }
+      print('Next turn 1');
+      yield NextRoll.newTurn(newTurn, turns, scs, data);
+    } else if (event.firstScore && state.scoreMatrixSecond.isNotEmpty) {
+      print('Chose first roll');
+      yield NextRoll.finalRoll(
+          state.currentTurn, state.currentRollNumber, state.firstRoll, state.secondRoll, state.turns, scs, data, true, '', [], state.scoreMatrixSecond);
+    } else if (!event.firstScore && state.scoreMatrixFirst.isNotEmpty) {
+      print('Chose second roll ' + state.scoreMatrixFirst.toString());
+      yield NextRoll.finalRoll(
+          state.currentTurn, state.currentRollNumber, state.firstRoll, state.secondRoll, state.turns, scs, data, true, '', state.scoreMatrixFirst, []);
+    } else {
+      print('next turn 2');
+      List<GameTurn> turns = List.from(state.turns);
+      turns.add(GameTurn(state.currentRolls));
+      int newTurn = state.currentTurn + 1;
+      yield NextRoll.newTurn(newTurn, turns, scs, data);
     }
   }
+
+  handleNextTurn() async* {
+    List<GameTurn> turns = List.from(state.turns);
+    turns.add(GameTurn(state.currentRolls));
+    int newTurn = state.currentTurn + 1;
+    List<List<ScoreItem>> data = _initData(state.scorecard, [], []);
+
+    yield NextRoll.newTurn(newTurn, turns, state.scorecard, data);
+  }
+
+  handleKeepRollTurn() async* {
+    Roll curr = state.currentRolls[state.currentRollNumber - 1];
+    List<Roll> rolls = List.from(state.currentRolls);
+
+    for (int i = 0; i < 3; i++) {
+      if (rolls.length < 3) rolls.add(curr);
+    }
+
+    // TODO add keeping of served rolls here.
+    // Score result = Score(true, 10 + (_score(roll[0]) * 5), state.pokerName, 11);
+
+    yield NextRoll(state.currentTurn, curr, Roll(), 3, rolls, state.turns, state.scorecard, state.data);
+  }
+
+  handleScoreTurn() async* {
+    Roll curr = state.currentRolls[state.currentRolls.length - 1];
+    Roll first = state.currentRolls[2];
+    List<Score> scoreMatrixFirst = generateScores('1st Roll: ', first.roll);
+    List<Score> scoreMatrixSecond = generateScores('2nd Roll: ', curr.roll);
+    List<List<ScoreItem>> data = _initData(state.scorecard, scoreMatrixFirst, scoreMatrixSecond);
+
+    yield NextRoll.finalRoll(state.currentTurn, state.currentRollNumber, state.firstRoll, state.secondRoll, state.turns, state.scorecard, data, true, '',
+        scoreMatrixFirst, scoreMatrixSecond);
+  }
+
+  handleRollTurn(RollTurn event) async* {
+    if (state.currentRollNumber > 0) {
+      // not the first roll
+      Roll curr = Roll.randomKeep(event.keep, state.currentRolls[state.currentRollNumber - 1]);
+      List<Roll> rolls = List.from(state.currentRolls);
+      rolls.add(curr);
+      Roll second = Roll();
+      Score sc;
+
+      if (state.currentRollNumber > 2) {
+        // we are on the second set of rolls
+        second = curr;
+        curr = state.currentRolls[2];
+        sc = checkForScore(second.roll);
+      } else {
+        sc = checkForScore(curr.roll);
+      }
+
+      if (sc.scoring) {
+        String serve = '';
+        if (!event.keep.contains(true)) serve = 'Served: ';
+        yield NextRoll.scoringRoll(state.currentTurn, curr, second, state.currentRollNumber + 1, rolls, state.turns, state.scorecard, state.data, sc.scoring,
+            serve + sc.name.toString());
+      } else
+        yield NextRoll(state.currentTurn, curr, second, state.currentRollNumber + 1, rolls, state.turns, state.scorecard, state.data);
+    } else if (state.currentRollNumber == 0) {
+      // first roll, so no history to keep dice from
+      Roll curr = Roll.random();
+      List<Roll> rolls = [curr];
+
+      Score sc = checkForScore(curr.roll);
+      if (sc.scoring) {
+        String serve = '';
+        if (!event.keep.contains(true)) serve = 'Served: ';
+        yield NextRoll.scoringRoll(state.currentTurn, curr, Roll(), state.currentRollNumber + 1, rolls, state.turns, state.scorecard, state.data, sc.scoring,
+            serve + sc.name.toString());
+      } else
+        yield NextRoll(state.currentTurn, curr, Roll(), state.currentRollNumber + 1, rolls, state.turns, state.scorecard, state.data);
+    }
+  }
+
+  /////////////////////////////////////////////////////////////////////
+  // scoring functions
+  /////////////////////////////////////////////////////////////////////
 
   List<Score> generateScores(String prefix, List<String> roll) {
     List<Score> res = [];
@@ -264,6 +298,111 @@ class GameLogicBloc extends Bloc<GameLogicEvent, GameLogicState> {
       return result;
     } else
       return Score(false, 0, '', -1);
+  }
+
+  List<List<ScoreItem>> _initData(Scorecard scorecard, List<Score> scoreMatrixFirst, List<Score> scoreMatrixSecond) {
+    if (scoreMatrixFirst != null || scoreMatrixSecond != null)
+      scoreMatrixFirst.forEach((sc) => print("1st: Score: " + sc.score.toString() + ' ' + sc.name + ' ' + sc.index.toString()));
+    if (scoreMatrixSecond != null || scoreMatrixSecond != null)
+      scoreMatrixFirst.forEach((sc) => print("2nd: Score: " + sc.score.toString() + ' ' + sc.name + ' ' + sc.index.toString()));
+
+    List<List<ScoreItem>> result = [];
+    List<ScoreItem> down = [];
+    int index = 0;
+    for (int i in scorecard.down) {
+      bool poss = false;
+      if ((scoreMatrixFirst != null && scoreMatrixFirst.isNotEmpty) || (scoreMatrixSecond != null && scoreMatrixSecond.isNotEmpty)) {
+        Score sco1 = scoreMatrixFirst.firstWhere((sc) => sc.index == index, orElse: () => null);
+        Score sco2 = scoreMatrixSecond.firstWhere((sc) => sc.index == index, orElse: () => null);
+        if (sco1 != null) {
+          // Something has been found!
+          // but unless the previous entry is filled we can't use this scoring box
+          if (index > 0 && scorecard.down[index - 1] != 0) {
+            if (i == 0) poss = true;
+          } else if (index == 0 && i == 0) poss = true;
+
+          if (poss) down.add(ScoreItem(i != 0, sco1.score, poss, 0, index, true));
+        }
+
+        if (sco2 != null) {
+          if (index > 0 && scorecard.down[index - 1] != 0) {
+            if (i == 0) poss = true;
+          } else if (index == 0 && i == 0) poss = true;
+          if (poss) down.add(ScoreItem(i != 0, sco2.score, poss, 0, index, false));
+        }
+      }
+      if (!poss) down.add(ScoreItem(i != 0, i, poss, 0, index, false));
+
+      index++;
+    }
+
+    result.add(down);
+
+    List<ScoreItem> up = [];
+    index = 0;
+    for (int i in scorecard.up) {
+      bool poss = false;
+      if ((scoreMatrixFirst != null && scoreMatrixFirst.isNotEmpty) || (scoreMatrixSecond != null && scoreMatrixSecond.isNotEmpty)) {
+        Score sco1 = scoreMatrixFirst.firstWhere((sc) => sc.index == index, orElse: () => null);
+        Score sco2 = scoreMatrixSecond.firstWhere((sc) => sc.index == index, orElse: () => null);
+
+        if (sco1 != null) {
+          // Something has been found!
+          // but unless the previous entry is filled we can't use this scoring box
+          if (index < scorecard.up.length - 1 && scorecard.up[index + 1] != 0) {
+            if (i == 0) poss = true;
+          } else if (index == scorecard.down.length - 1 && i == 0) poss = true;
+
+          if (poss) up.add(ScoreItem(i != 0, sco1.score, poss, 1, index, true));
+        }
+
+        if (sco2 != null) {
+          if (index < scorecard.up.length - 1 && scorecard.up[index + 1] != 0) {
+            if (i == 0) poss = true;
+          } else if (index == scorecard.down.length - 1 && i == 0) poss = true;
+
+          if (poss) up.add(ScoreItem(i != 0, sco2.score, poss, 1, index, false));
+        }
+      }
+
+      if (!poss) up.add(ScoreItem(i != 0, i, poss, 1, index, false));
+      index++;
+    }
+
+    result.add(up);
+
+    List<ScoreItem> any = [];
+    index = 0;
+    for (int i in scorecard.any) {
+      bool poss = false;
+      if ((scoreMatrixFirst != null && scoreMatrixFirst.isNotEmpty) || (scoreMatrixSecond != null && scoreMatrixSecond.isNotEmpty)) {
+        Score sco1 = scoreMatrixFirst.firstWhere((sc) => sc.index == index, orElse: () => null);
+        Score sco2 = scoreMatrixSecond.firstWhere((sc) => sc.index == index, orElse: () => null);
+        //scoreMatrix.forEach((sc) => print(sc.score.toString() + ' ' + sc.name + ' ' + sc.index.toString()));
+        if (sco1 != null) {
+          // Something has been found!
+          if (i == 0) {
+            poss = true;
+            any.add(ScoreItem(i != 0, sco1.score, poss, 2, index, true));
+          }
+        }
+
+        if (sco2 != null) {
+          // Something has been found!
+          if (i == 0) {
+            poss = true;
+            any.add(ScoreItem(i != 0, sco2.score, poss, 2, index, false));
+          }
+        }
+      }
+
+      if (!poss) any.add(ScoreItem(i != 0, i, poss, 2, index, false));
+      index++;
+    }
+
+    result.add(any);
+
+    return result;
   }
 
   int _score(String die) {

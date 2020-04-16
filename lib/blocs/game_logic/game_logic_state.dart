@@ -17,7 +17,9 @@ abstract class GameLogicState extends Equatable {
   final List<GameTurn> turns;
   final Scorecard scorecard;
 
-  GameLogicState(this.currentTurn, this.currentRolls, this.firstRoll, this.secondRoll, this.currentRollNumber, this.turns, this.scorecard,
+  final List<List<ScoreItem>> data;
+
+  GameLogicState(this.currentTurn, this.currentRolls, this.firstRoll, this.secondRoll, this.currentRollNumber, this.turns, this.scorecard, this.data,
       {this.scoring, this.pokerName, this.scoreMatrixFirst, this.scoreMatrixSecond})
       : super();
 
@@ -26,22 +28,22 @@ abstract class GameLogicState extends Equatable {
 }
 
 class InitialGameLogicState extends GameLogicState {
-  InitialGameLogicState() : super(0, [], Roll(), Roll(), 0, [], Scorecard(), scoring: false, pokerName: '');
+  InitialGameLogicState(List<List<ScoreItem>> data) : super(0, [], Roll(), Roll(), 0, [], Scorecard(), data, scoring: false, pokerName: '');
 }
 
 class NextRoll extends GameLogicState {
-  NextRoll(currentTurn, currentRoll, secondRoll, currentRollNumber, currentRolls, turns, scorecard)
-      : super(currentTurn, currentRolls, currentRoll, secondRoll, currentRollNumber, turns, scorecard, scoring: false, pokerName: '');
+  NextRoll(currentTurn, currentRoll, secondRoll, currentRollNumber, currentRolls, turns, scorecard, data)
+      : super(currentTurn, currentRolls, currentRoll, secondRoll, currentRollNumber, turns, scorecard, data, scoring: false, pokerName: '');
 
-  NextRoll.scoringRoll(currentTurn, currentRoll, secondRoll, currentRollNumber, currentRolls, turns, scorecard, scoring, pokerName)
-      : super(currentTurn, currentRolls, currentRoll, secondRoll, currentRollNumber, turns, scorecard, scoring: scoring, pokerName: pokerName);
+  NextRoll.scoringRoll(currentTurn, currentRoll, secondRoll, currentRollNumber, currentRolls, turns, scorecard, data, scoring, pokerName)
+      : super(currentTurn, currentRolls, currentRoll, secondRoll, currentRollNumber, turns, scorecard, data, scoring: scoring, pokerName: pokerName);
 
-  NextRoll.finalRoll(currentTurn, currentRollNumber, currentRoll, secondRoll, turns, scorecard, scoring, pokerName, scoreMatrixFirst, scoreMatrixSecond)
-      : super(currentTurn, [], currentRoll, secondRoll, currentRollNumber, turns, scorecard,
+  NextRoll.finalRoll(currentTurn, currentRollNumber, currentRoll, secondRoll, turns, scorecard, data, scoring, pokerName, scoreMatrixFirst, scoreMatrixSecond)
+      : super(currentTurn, [], currentRoll, secondRoll, currentRollNumber, turns, scorecard, data,
             scoring: scoring, pokerName: pokerName, scoreMatrixFirst: scoreMatrixFirst, scoreMatrixSecond: scoreMatrixSecond);
 
-  NextRoll.newTurn(currentTurn, turns, scorecard)
-      : super(currentTurn, [], Roll(), Roll(), 0, turns, scorecard, scoring: false, pokerName: '', scoreMatrixFirst: [], scoreMatrixSecond: []);
+  NextRoll.newTurn(currentTurn, turns, scorecard, data)
+      : super(currentTurn, [], Roll(), Roll(), 0, turns, scorecard, data, scoring: false, pokerName: '', scoreMatrixFirst: [], scoreMatrixSecond: []);
 
   @override
   List<Object> get props => [currentTurn, firstRoll, currentRolls, currentRollNumber, turns, scorecard];
