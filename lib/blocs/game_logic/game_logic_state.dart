@@ -32,11 +32,14 @@ class InitialGameLogicState extends GameLogicState {
 }
 
 class NextRoll extends GameLogicState {
-  NextRoll(currentTurn, currentRoll, secondRoll, currentRollNumber, currentRolls, turns, scorecard, data)
-      : super(currentTurn, currentRolls, currentRoll, secondRoll, currentRollNumber, turns, scorecard, data, scoring: false, pokerName: '');
+  NextRoll(currentTurn, currentRoll, secondRoll, currentRollNumber, currentRolls, turns, scorecard, data, {scoreMatrixFirst, scoreMatrixSecond})
+      : super(currentTurn, currentRolls, currentRoll, secondRoll, currentRollNumber, turns, scorecard, data,
+            scoring: false, pokerName: '', scoreMatrixFirst: scoreMatrixFirst, scoreMatrixSecond: scoreMatrixSecond);
 
-  NextRoll.scoringRoll(currentTurn, currentRoll, secondRoll, currentRollNumber, currentRolls, turns, scorecard, data, scoring, pokerName)
-      : super(currentTurn, currentRolls, currentRoll, secondRoll, currentRollNumber, turns, scorecard, data, scoring: scoring, pokerName: pokerName);
+  NextRoll.scoringRoll(currentTurn, currentRoll, secondRoll, currentRollNumber, currentRolls, turns, scorecard, data, scoring, pokerName,
+      {scoreMatrixFirst, scoreMatrixSecond})
+      : super(currentTurn, currentRolls, currentRoll, secondRoll, currentRollNumber, turns, scorecard, data,
+            scoring: scoring, pokerName: pokerName, scoreMatrixFirst: scoreMatrixFirst, scoreMatrixSecond: scoreMatrixSecond);
 
   NextRoll.finalRoll(currentTurn, currentRollNumber, currentRoll, secondRoll, turns, scorecard, data, scoring, pokerName, scoreMatrixFirst, scoreMatrixSecond)
       : super(currentTurn, [], currentRoll, secondRoll, currentRollNumber, turns, scorecard, data,

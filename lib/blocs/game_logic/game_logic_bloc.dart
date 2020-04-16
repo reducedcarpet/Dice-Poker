@@ -37,7 +37,7 @@ class GameLogicBloc extends Bloc<GameLogicEvent, GameLogicState> {
   // Event Handlers
   /////////////////////////////////////////////////////////////////////
 
-  handlePlaceScore(PlaceScore event) async* {
+  GameLogicState handlePlaceScore(PlaceScore event) {
     Scorecard scs = state.scorecard;
     if (event.x == 0) {
       scs.down[event.index] = event.score.score;
@@ -50,41 +50,41 @@ class GameLogicBloc extends Bloc<GameLogicEvent, GameLogicState> {
     print('First: ' + state.scoreMatrixFirst.toString() + " first: " + event.firstScore.toString());
     print('Second: ' + state.scoreMatrixSecond.toString());
 
-    List<List<ScoreItem>> data = _initData(state.scorecard, state.scoreMatrixFirst, state.scoreMatrixSecond);
+    List<List<ScoreItem>> data = _initData(scs, state.scoreMatrixFirst, state.scoreMatrixSecond);
 
     if (state.scoreMatrixSecond.isEmpty && state.scoreMatrixFirst.isEmpty) {
       List<GameTurn> turns = List.from(state.turns);
       turns.add(GameTurn(state.currentRolls));
       int newTurn = state.currentTurn + 1;
       print('Next turn 1');
-      yield NextRoll.newTurn(newTurn, turns, scs, data);
+      return NextRoll.newTurn(newTurn, turns, scs, data);
     } else if (event.firstScore && state.scoreMatrixSecond.isNotEmpty) {
       print('Chose first roll');
-      yield NextRoll.finalRoll(
+      return NextRoll.finalRoll(
           state.currentTurn, state.currentRollNumber, state.firstRoll, state.secondRoll, state.turns, scs, data, true, '', [], state.scoreMatrixSecond);
     } else if (!event.firstScore && state.scoreMatrixFirst.isNotEmpty) {
       print('Chose second roll ' + state.scoreMatrixFirst.toString());
-      yield NextRoll.finalRoll(
+      return NextRoll.finalRoll(
           state.currentTurn, state.currentRollNumber, state.firstRoll, state.secondRoll, state.turns, scs, data, true, '', state.scoreMatrixFirst, []);
     } else {
       print('next turn 2');
       List<GameTurn> turns = List.from(state.turns);
       turns.add(GameTurn(state.currentRolls));
       int newTurn = state.currentTurn + 1;
-      yield NextRoll.newTurn(newTurn, turns, scs, data);
+      return NextRoll.newTurn(newTurn, turns, scs, data);
     }
   }
 
-  handleNextTurn() async* {
+  GameLogicState handleNextTurn() {
     List<GameTurn> turns = List.from(state.turns);
     turns.add(GameTurn(state.currentRolls));
     int newTurn = state.currentTurn + 1;
     List<List<ScoreItem>> data = _initData(state.scorecard, [], []);
 
-    yield NextRoll.newTurn(newTurn, turns, state.scorecard, data);
+    return NextRoll.newTurn(newTurn, turns, state.scorecard, data);
   }
 
-  handleKeepRollTurn() async* {
+  GameLogicState handleKeepRollTurn() {
     Roll curr = state.currentRolls[state.currentRollNumber - 1];
     List<Roll> rolls = List.from(state.currentRolls);
 
@@ -92,24 +92,31 @@ class GameLogicBloc extends Bloc<GameLogicEvent, GameLogicState> {
       if (rolls.length < 3) rolls.add(curr);
     }
 
+    List<Score> scoreMatrixFirst = state.scoreMatrixFirst;
+    List<Score> scoreMatrixSecond = state.scoreMatrixSecond;
+
     // TODO add keeping of served rolls here.
     // Score result = Score(true, 10 + (_score(roll[0]) * 5), state.pokerName, 11);
 
-    yield NextRoll(state.currentTurn, curr, Roll(), 3, rolls, state.turns, state.scorecard, state.data);
+    return NextRoll(state.currentTurn, curr, Roll(), 3, rolls, state.turns, state.scorecard, state.data,
+        scoreMatrixFirst: scoreMatrixFirst, scoreMatrixSecond: scoreMatrixSecond);
   }
 
-  handleScoreTurn() async* {
+  GameLogicState handleScoreTurn() {
+    // check for the middle lane of +30 points if you get over 60 in the top section, if it's a upwards column, just skip it till the end.
     Roll curr = state.currentRolls[state.currentRolls.length - 1];
     Roll first = state.currentRolls[2];
-    List<Score> scoreMatrixFirst = generateScores('1st Roll: ', first.roll);
-    List<Score> scoreMatrixSecond = generateScores('2nd Roll: ', curr.roll);
+    List<Score> scoreMatrixFirst = state.scoreMatrixFirst;
+    List<Score> scoreMatrixSecond = state.scoreMatrixSecond;
+    scoreMatrixFirst.addAll(generateScores('1st Roll: ', first.roll));
+    scoreMatrixSecond.addAll(generateScores('2nd Roll: ', curr.roll));
     List<List<ScoreItem>> data = _initData(state.scorecard, scoreMatrixFirst, scoreMatrixSecond);
 
-    yield NextRoll.finalRoll(state.currentTurn, state.currentRollNumber, state.firstRoll, state.secondRoll, state.turns, state.scorecard, data, true, '',
+    return NextRoll.finalRoll(state.currentTurn, state.currentRollNumber, state.firstRoll, state.secondRoll, state.turns, state.scorecard, data, true, '',
         scoreMatrixFirst, scoreMatrixSecond);
   }
 
-  handleRollTurn(RollTurn event) async* {
+  GameLogicState handleRollTurn(RollTurn event) {
     if (state.currentRollNumber > 0) {
       // not the first roll
       Roll curr = Roll.randomKeep(event.keep, state.currentRolls[state.currentRollNumber - 1]);
@@ -117,36 +124,55 @@ class GameLogicBloc extends Bloc<GameLogicEvent, GameLogicState> {
       rolls.add(curr);
       Roll second = Roll();
       Score sc;
+      bool firstRound = true;
 
       if (state.currentRollNumber > 2) {
         // we are on the second set of rolls
         second = curr;
+        firstRound = false;
         curr = state.currentRolls[2];
         sc = checkForScore(second.roll);
       } else {
         sc = checkForScore(curr.roll);
       }
 
+      List<Score> scoreMatrixFirst = state.scoreMatrixFirst;
+      List<Score> scoreMatrixSecond = state.scoreMatrixSecond;
+
       if (sc.scoring) {
         String serve = '';
         if (!event.keep.contains(true)) serve = 'Served: ';
-        yield NextRoll.scoringRoll(state.currentTurn, curr, second, state.currentRollNumber + 1, rolls, state.turns, state.scorecard, state.data, sc.scoring,
-            serve + sc.name.toString());
+
+        if (firstRound)
+          scoreMatrixFirst = [Score(true, sc.score + servePoints, serve + sc.name.toString(), 11)];
+        else
+          scoreMatrixSecond = [Score(true, sc.score + servePoints, serve + sc.name.toString(), 11)];
+
+        return NextRoll.scoringRoll(state.currentTurn, curr, second, state.currentRollNumber + 1, rolls, state.turns, state.scorecard, state.data, sc.scoring,
+            serve + sc.name.toString(),
+            scoreMatrixFirst: scoreMatrixFirst, scoreMatrixSecond: scoreMatrixSecond);
       } else
-        yield NextRoll(state.currentTurn, curr, second, state.currentRollNumber + 1, rolls, state.turns, state.scorecard, state.data);
+        return NextRoll(state.currentTurn, curr, second, state.currentRollNumber + 1, rolls, state.turns, state.scorecard, state.data,
+            scoreMatrixFirst: scoreMatrixFirst, scoreMatrixSecond: scoreMatrixSecond);
     } else if (state.currentRollNumber == 0) {
       // first roll, so no history to keep dice from
       Roll curr = Roll.random();
       List<Roll> rolls = [curr];
 
+      List<Score> scoreMatrixFirst = [];
+      List<Score> scoreMatrixSecond = [];
+
       Score sc = checkForScore(curr.roll);
       if (sc.scoring) {
         String serve = '';
+        scoreMatrixFirst = [Score(true, sc.score + servePoints, serve + sc.name.toString(), 11)];
         if (!event.keep.contains(true)) serve = 'Served: ';
-        yield NextRoll.scoringRoll(state.currentTurn, curr, Roll(), state.currentRollNumber + 1, rolls, state.turns, state.scorecard, state.data, sc.scoring,
-            serve + sc.name.toString());
+        return NextRoll.scoringRoll(state.currentTurn, curr, Roll(), state.currentRollNumber + 1, rolls, state.turns, state.scorecard, state.data, sc.scoring,
+            serve + sc.name.toString(),
+            scoreMatrixFirst: scoreMatrixFirst, scoreMatrixSecond: scoreMatrixSecond);
       } else
-        yield NextRoll(state.currentTurn, curr, Roll(), state.currentRollNumber + 1, rolls, state.turns, state.scorecard, state.data);
+        return NextRoll(state.currentTurn, curr, Roll(), state.currentRollNumber + 1, rolls, state.turns, state.scorecard, state.data,
+            scoreMatrixFirst: scoreMatrixFirst, scoreMatrixSecond: scoreMatrixSecond);
     }
   }
 
@@ -202,21 +228,21 @@ class GameLogicBloc extends Bloc<GameLogicEvent, GameLogicState> {
   Score checkForScore(List<String> roll) {
     if (roll.contains('A') && roll.contains('K') && roll.contains('Q') && roll.contains('J') && roll.contains('10')) {
       // big street
-      Score result = Score(true, 25, 'Big Street', 7);
+      Score result = Score(true, 25, 'Big Street', 6);
       return result;
     } else if (roll.contains('K') && roll.contains('Q') && roll.contains('J') && roll.contains('10') && roll.contains('9')) {
       // small street
-      Score result = Score(true, 20, 'Small Street', 7);
+      Score result = Score(true, 20, 'Small Street', 6);
       return result;
     } else if (roll[0] == roll[1] && roll[1] == roll[2] && roll[2] == roll[3] && roll[3] == roll[4]) {
       // grand
-      Score result = Score(true, 50 + (_score(roll[0]) * 5), _name(roll[0]) + ' Grand', 10);
+      Score result = Score(true, 50 + (_score(roll[0]) * 5), _name(roll[0]) + ' Grand', 9);
       return result;
     } else {
       List<String> allA = List.from(roll.where((element) => element == 'A'));
       if (allA.length == 4) {
         // Poker
-        Score result = Score(true, 40 + (_score(allA[0]) * 4), 'Ace Poker', 9);
+        Score result = Score(true, 40 + (_score(allA[0]) * 4), 'Ace Poker', 8);
         return result;
       } else if (allA.length == 3) {
         // Possible Full House
@@ -228,7 +254,7 @@ class GameLogicBloc extends Bloc<GameLogicEvent, GameLogicState> {
       List<String> allK = List.from(roll.where((element) => element == 'K'));
       if (allK.length == 4) {
         // Poker
-        Score result = Score(true, 40 + (_score(allK[0]) * 4), 'King Poker', 9);
+        Score result = Score(true, 40 + (_score(allK[0]) * 4), 'King Poker', 8);
         return result;
       } else if (allK.length == 3) {
         // Possible Full House
@@ -240,7 +266,7 @@ class GameLogicBloc extends Bloc<GameLogicEvent, GameLogicState> {
       List<String> allQ = List.from(roll.where((element) => element == 'Q'));
       if (allQ.length == 4) {
         // Poker
-        Score result = Score(true, 40 + (_score(allQ[0]) * 4), 'Queen Poker', 9);
+        Score result = Score(true, 40 + (_score(allQ[0]) * 4), 'Queen Poker', 8);
         return result;
       } else if (allQ.length == 3) {
         // Possible Full House
@@ -252,7 +278,7 @@ class GameLogicBloc extends Bloc<GameLogicEvent, GameLogicState> {
       List<String> allJ = List.from(roll.where((element) => element == 'J'));
       if (allJ.length == 4) {
         // Poker
-        Score result = Score(true, 40 + (_score(allJ[0]) * 4), 'Jack Poker', 9);
+        Score result = Score(true, 40 + (_score(allJ[0]) * 4), 'Jack Poker', 8);
         return result;
       } else if (allJ.length == 3) {
         // Possible Full House
@@ -264,7 +290,7 @@ class GameLogicBloc extends Bloc<GameLogicEvent, GameLogicState> {
       List<String> allTen = List.from(roll.where((element) => element == '10'));
       if (allTen.length == 4) {
         // Poker
-        Score result = Score(true, 40 + (_score(allTen[0]) * 4), 'Ten Poker', 9);
+        Score result = Score(true, 40 + (_score(allTen[0]) * 4), 'Ten Poker', 8);
         return result;
       } else if (allTen.length == 3) {
         // Possible Full House
@@ -276,7 +302,7 @@ class GameLogicBloc extends Bloc<GameLogicEvent, GameLogicState> {
       List<String> allNine = List.from(roll.where((element) => element == '9'));
       if (allNine.length == 4) {
         // Poker
-        Score result = Score(true, 40 + (_score(allNine[0]) * 4), 'Nine Poker', 9);
+        Score result = Score(true, 40 + (_score(allNine[0]) * 4), 'Nine Poker', 8);
         return result;
       } else if (allNine.length == 3) {
         // Possible Full House
@@ -294,7 +320,7 @@ class GameLogicBloc extends Bloc<GameLogicEvent, GameLogicState> {
     List<String> others = List.from(roll.where((element) => element != allA[0]));
     if (others[0] == others[1]) {
       // Full House
-      Score result = Score(true, 30 + (_score(allA[0]) * 3), 'Full House - ' + _name(allA[0]) + 's over ' + _name(others[0]) + 's', 8);
+      Score result = Score(true, 30 + (_score(allA[0]) * 3), 'Full House - ' + _name(allA[0]) + 's over ' + _name(others[0]) + 's', 7);
       return result;
     } else
       return Score(false, 0, '', -1);
@@ -424,4 +450,6 @@ class GameLogicBloc extends Bloc<GameLogicEvent, GameLogicState> {
     if (die == '9') return 'Nine';
     return '';
   }
+
+  final servePoints = 10;
 }
